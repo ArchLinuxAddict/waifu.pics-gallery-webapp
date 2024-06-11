@@ -1,2 +1,2 @@
-# waifu.pics-gallery-webapp
+# waifu.pics gallery webapp
 A Gallery webapp waifu.pics sfw and nsfw 
