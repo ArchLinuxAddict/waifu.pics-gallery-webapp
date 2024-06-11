@@ -1,0 +1,143 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-theme {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+h2 {
+    text-align: center;
+}
+
+.theme-toggle {
+    text-align: right;
+    padding: 10px;
+}
+
+.theme-toggle button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.theme-toggle button:hover {
+    background-color: #0056b3;
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.categories {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.categories label,
+.categories select,
+.categories button {
+    color: inherit;
+    background: inherit;
+}
+
+.categories select,
+.categories button {
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+body.dark-theme .categories select,
+body.dark-theme .categories button {
+    border: 1px solid #444;
+}
+
+.images {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 0 auto;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+body.dark-theme .images {
+    background: #1e1e1e;
+    box-shadow: 0px 0px 10px 0px rgba(255,255,255,0.1);
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-auto-rows: 200px;
+    gap: 10px;
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.dark-theme .gallery-item {
+    box-shadow: 0px 0px 5px 0px rgba(255,255,255,0.1);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+.load-more {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.load-more button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.load-more button:hover {
+    background-color: #0056b3;
+}
+
+.load-more button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+body.dark-theme .load-more button {
+    background-color: #007bff;
+    color: white;
+}
+
+body.dark-theme .load-more button:hover {
+    background-color: #0056b3;
+}

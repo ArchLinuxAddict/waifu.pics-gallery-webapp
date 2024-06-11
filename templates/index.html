@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waifu Images</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="toggleThemeBtn">Toggle Theme</button>
+    </div>
+
+    <h1>Waifu Images</h1>
+    
+    <div class="categories">
+        <form action="/" method="get">
+            <label for="category">Select category:</label>
+            <select name="category" id="category">
+                <option value="sfw" {% if category == 'sfw' %}selected{% endif %}>SFW</option>
+                <option value="nsfw" {% if category == 'nsfw' %}selected{% endif %}>NSFW</option>
+            </select>
+            <button type="submit">Switch</button>
+        </form>
+    </div>
+
+    <div id="imageContainer" class="images">
+        <h2>{{ 'SFW Images' if category == 'sfw' else 'NSFW Images' }}</h2>
+        <div class="gallery">
+            {% for image in images %}
+            <div class="gallery-item">
+                <img src="{{ image.url }}" alt="Waifu Image">
+            </div>
+            {% endfor %}
+        </div>
+        <div class="load-more">
+            <button id="loadMoreBtn" data-page="2" data-category="{{ category }}">Load More</button>
+        </div>
+    </div>
+
+    <script>
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const gallery = document.querySelector('.gallery');
+
+        loadMoreBtn.addEventListener('click', function() {
+            const page = this.getAttribute('data-page');
+            const category = this.getAttribute('data-category');
+            
+            axios.get(`/load_more?category=${category}&page=${page}`)
+                .then(function(response) {
+                    const images = response.data.trim();
+                    if (images) {
+                        gallery.innerHTML += images;
+                        loadMoreBtn.setAttribute('data-page', parseInt(page) + 1);
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading more images:', error);
+                });
+        });
+
+        // Theme toggle logic
+        const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+        const body = document.body;
+
+        toggleThemeBtn.addEventListener('click', function() {
+            body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // Load saved theme from localStorage
+        window.addEventListener('DOMContentLoaded', (event) => {
+            if (localStorage.getItem('theme') === 'dark') {
+                body.classList.add('dark-theme');
+            }
+        });
+    </script>
+</body>
+</html>
