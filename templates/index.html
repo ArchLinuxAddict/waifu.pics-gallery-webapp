@@ -3,78 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waifu Images</title>
+    <title>Waifu Gallery</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="theme-toggle">
-        <button id="toggleThemeBtn">Toggle Theme</button>
-    </div>
-
-    <h1>Waifu Images</h1>
-    
-    <div class="categories">
-        <form action="/" method="get">
-            <label for="category">Select category:</label>
-            <select name="category" id="category">
-                <option value="sfw" {% if category == 'sfw' %}selected{% endif %}>SFW</option>
-                <option value="nsfw" {% if category == 'nsfw' %}selected{% endif %}>NSFW</option>
-            </select>
-            <button type="submit">Switch</button>
-        </form>
-    </div>
-
-    <div id="imageContainer" class="images">
-        <h2>{{ 'SFW Images' if category == 'sfw' else 'NSFW Images' }}</h2>
-        <div class="gallery">
-            {% for image in images %}
-            <div class="gallery-item">
-                <img src="{{ image.url }}" alt="Waifu Image">
+    <div class="container">
+        <header>
+            <h1>Waifu Gallery</h1>
+            <nav>
+                <a href="/?category=sfw{% if selected_category %}&selected_category={{ selected_category }}{% endif %}" 
+                   class="nav-link {% if category == 'sfw' %}active{% endif %}">SFW</a>
+                <a href="/?category=nsfw{% if selected_category %}&selected_category={{ selected_category }}{% endif %}" 
+                   class="nav-link {% if category == 'nsfw' %}active{% endif %}">NSFW</a>
+            </nav>
+        </header>
+        
+        <main>
+            <div class="category-selector">
+                <select id="categorySelect" onchange="changeCategory(this.value)">
+                    <option value="">All Categories</option>
+                    {% for cat in available_categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                        {{ cat|title }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-            {% endfor %}
-        </div>
-        <div class="load-more">
-            <button id="loadMoreBtn" data-page="2" data-category="{{ category }}">Load More</button>
-        </div>
+
+            <div class="gallery-container">
+                <div class="image-grid" id="imageGrid">
+                    {% for image in images %}
+                    <div class="image-card">
+                        <img src="{{ image.url }}" 
+                             alt="Waifu image" 
+                             loading="lazy"
+                             onload="this.classList.add('loaded')"
+                             onerror="this.src='{{ url_for('static', filename='placeholder.jpg') }}'">
+                        <div class="image-overlay">
+                            <span class="category-tag">{{ image.category }}</span>
+                            <div class="image-actions">
+                                <button class="action-btn" onclick="copyImageUrl('{{ image.url }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <a href="{{ image.url }}" target="_blank" class="action-btn">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading more images...</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2024 Waifu Gallery. All images are from <a href="https://waifu.pics/" target="_blank">waifu.pics</a></p>
+        </footer>
     </div>
 
     <script>
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const gallery = document.querySelector('.gallery');
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMoreImages = true;
+        const category = "{{ category }}";
+        const selectedCategory = "{{ selected_category }}";
+        
+        // Intersection Observer for infinite scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !isLoading && hasMoreImages) {
+                    loadMoreImages();
+                }
+            });
+        }, {
+            rootMargin: '200px',
+            threshold: 0.1
+        });
 
-        loadMoreBtn.addEventListener('click', function() {
-            const page = this.getAttribute('data-page');
-            const category = this.getAttribute('data-category');
+        // Start observing the loading indicator
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        observer.observe(loadingIndicator);
+        
+        function changeCategory(categoryValue) {
+            window.location.href = `/?category=${category}&selected_category=${categoryValue}`;
+        }
+        
+        function loadMoreImages() {
+            if (isLoading || !hasMoreImages) return;
             
-            axios.get(`/load_more?category=${category}&page=${page}`)
-                .then(function(response) {
-                    const images = response.data.trim();
-                    if (images) {
-                        gallery.innerHTML += images;
-                        loadMoreBtn.setAttribute('data-page', parseInt(page) + 1);
-                    } else {
-                        loadMoreBtn.style.display = 'none';
+            isLoading = true;
+            loadingIndicator.style.display = 'block';
+            
+            const categorySelect = document.getElementById('categorySelect');
+            const selectedCategory = categorySelect.value;
+            
+            fetch(`/load_more?category=${category}&selected_category=${selectedCategory}&page=${currentPage}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
+                    return response.text();
                 })
-                .catch(function(error) {
+                .then(html => {
+                    const imageGrid = document.getElementById('imageGrid');
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    
+                    const newImageCards = tempDiv.querySelectorAll('.image-card');
+                    
+                    if (newImageCards.length === 0) {
+                        hasMoreImages = false;
+                        loadingIndicator.style.display = 'none';
+                        return;
+                    }
+                    
+                    newImageCards.forEach(card => {
+                        const img = card.querySelector('img');
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                        };
+                        imageGrid.appendChild(card);
+                    });
+                    
+                    currentPage++;
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
+                })
+                .catch(error => {
                     console.error('Error loading more images:', error);
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
                 });
-        });
+        }
+        
+        function copyImageUrl(url) {
+            navigator.clipboard.writeText(url)
+                .then(() => {
+                    const btn = event.target.closest('.action-btn');
+                    const originalIcon = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalIcon;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy URL:', err);
+                });
+        }
 
-        // Theme toggle logic
-        const toggleThemeBtn = document.getElementById('toggleThemeBtn');
-        const body = document.body;
-
-        toggleThemeBtn.addEventListener('click', function() {
-            body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
-        });
-
-        // Load saved theme from localStorage
-        window.addEventListener('DOMContentLoaded', (event) => {
-            if (localStorage.getItem('theme') === 'dark') {
-                body.classList.add('dark-theme');
+        // Initial check for scroll position
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                loadMoreImages();
             }
         });
     </script>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Waifu Gallery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Waifu Gallery</h1>
+            <nav>
+                <a href="/" class="nav-link">Home</a>
+            </nav>
+        </header>
+        
+        <main class="error-container">
+            <div class="error-message">
+                <h2>Oops! Something went wrong</h2>
+                <p>{{ message }}</p>
+                <a href="/" class="btn">Return to Home</a>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2024 Waifu Gallery. All images are from <a href="https://waifu.pics/" target="_blank">waifu.pics</a></p>
+        </footer>
+    </div>
+</body>
+</html> 

@@ -1,5 +1,16 @@
 {% for image in images %}
-<div class="gallery-item">
-    <img src="{{ image.url }}" alt="Waifu Image">
+<div class="image-card">
+    <img src="{{ image.url }}" alt="Waifu image" loading="lazy">
+    <div class="image-overlay">
+        <span class="category-tag">{{ image.category }}</span>
+        <div class="image-actions">
+            <button class="action-btn" onclick="copyImageUrl('{{ image.url }}')">
+                <i class="fas fa-copy"></i>
+            </button>
+            <a href="{{ image.url }}" target="_blank" class="action-btn">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+    </div>
 </div>
 {% endfor %}
